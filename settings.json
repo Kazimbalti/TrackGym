@@ -1,0 +1,13 @@
+
+{
+	"SeeDocsAt": "https://github.com/Microsoft/AirSim/blob/master/docs/settings.md",
+	"SettingsVersion": 1.2,
+	"SimMode": "Multirotor",
+        "ClockSpeed": 1,
+	"Vehicles": {
+		"Drone1": {
+		  "VehicleType": "SimpleFlight",
+ 	          "X": 5, "Y": -1  , "Z": -2
+		}
+}
+}

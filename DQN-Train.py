@@ -36,7 +36,7 @@ from rl.callbacks import FileLogger, ModelIntervalCheckpoint
 from keras.callbacks import History, TensorBoard
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--mode', choices=['train', 'test'], default='test')
+parser.add_argument('--mode', choices=['train', 'test'], default='train')
 parser.add_argument('--env-name', type=str, default='TrackSimEnv-v1')
 parser.add_argument('--weights', type=str, default=None)
 args = parser.parse_args()
@@ -67,7 +67,7 @@ model.add(Activation('linear'))
 print(model.summary())
 
 
-train = False
+train = True
 '''
 class Agent():
     def __init__(self, state_size, action_size):

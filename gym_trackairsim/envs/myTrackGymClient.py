@@ -190,6 +190,6 @@ class myTrackGymClient(MultirotorClient):
         time.sleep(1)
         self.moveToZAsync(self.z, 3,vehicle_name) 
          
-        time.sleep(1)
+        time.sleep(3)
         
      
