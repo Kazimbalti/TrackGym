@@ -7,28 +7,40 @@ from PIL import Image
 import eventlet
 from eventlet import Timeout
 import multiprocessing as mp
-# Change the path below to point to the directoy where you installed the AirSim PythonClient
-#sys.path.append('C:/Users/Kjell/Google Drive/MASTER-THESIS/AirSimpy')
 
 from TrackSimClient import *
-vehicle_name = "Drone1"
+
 
 class myTrackGymClient(MultirotorClient):
 
-    def __init__(self,vehicle_name=''):        
+    def __init__(self):        
+        self.drone1_vehicle_name = "Drone1"
+        #self.target1_vehicle_name = "Target1"
+        self.z =-2
+        self.max_z= self.z - 1  #maximum allowable z value as the drone goofs up sometimes.
         self.img1 = None
         self.img2 = None
 
         MultirotorClient.__init__(self)
-        MultirotorClient.confirmConnection(self, vehicle_name)
-        self.enableApiControl(True,vehicle_name)
-        self.armDisarm(True,vehicle_name)
-    
-        self.home_pos = self.simGetGroundTruthKinematics(vehicle_name).position
+        #MultirotorClient.confirmConnection(self)
+        #self.enableApiControl(True,vehicle_name='')
+        #self.enableApiControl(True,self.target1_vehicle_name)################
+        #self.armDisarm(True,vehicle_name='')
+        #self.armDisarm(True,self.target1_vehicle_name)################
+        #f1 = MultirotorClient.takeoffAsync(drone1_vehicle_name)
+        #f2 = self.takeoffAsync(self.target1_vehicle_name)
+        #f1.join()
+        #f2.join()
+        self.home_pos = self.simGetGroundTruthKinematics(self.drone1_vehicle_name).position
         print('home_pos',self.home_pos)
-        self.home_ori = self.simGetGroundTruthKinematics(vehicle_name).orientation
+        #self.target1_home_pos = self.simGetGroundTruthKinematics(self.target1_vehicle_name).position###########
+        #print('target1_home_pos',self.target1_home_pos)#####################
+        self.home_ori = self.simGetGroundTruthKinematics(self.drone1_vehicle_name).orientation
+        print('home_ori',self.home_ori)
+        #self.target1_home_ori = self.simGetGroundTruthKinematics(self.target1_vehicle_name).orientation################
+        #print('target1_home_ori',self.target1_home_ori)
+
         
-        self.z = -1
    
     def straight(self, duration,speed, vehicle_name=''):
         #pitch, roll, yaw  = client.getRollPitchYaw()
@@ -41,22 +53,22 @@ class myTrackGymClient(MultirotorClient):
         start = time.time()
         return start, duration
     def yaw_right(self, duration,vehicle_name=''):
-        self.rotateByYawRateAsync(30, duration,vehicle_name)
+        self.rotateByYawRateAsync(15, duration,vehicle_name)
         start = time.time()
         return start, duration
     
     def yaw_left(self, duration, vehicle_name=''):
-        self.rotateByYawRateAsync(-30, duration,vehicle_name)
+        self.rotateByYawRateAsync(-15, duration,vehicle_name)
         start = time.time()
         return start, duration
     
     
-    def take_action(self, action, vehicle_name='' ):
+    def take_action(self, action, vehicle_name=''):
 		
-        #check if copter is on level cause sometimes he goes up without a reason
+        #check if copter is on level cause sometimes it goes up without a reason
         x = 0
-        while self.simGetGroundTruthKinematics(vehicle_name).position.z_val < -7.0:
-            self. moveToZAsync(-6, 3, vehicle_name)
+        while self.simGetGroundTruthKinematics(vehicle_name).position.z_val < self.max_z:
+            self. moveToZAsync(self.max_z, 3, vehicle_name)
             time.sleep(1)
             print(self.simGetGroundTruthKinematics(vehicle_name).position.z_val, "and", x)
             x = x + 1
@@ -68,14 +80,17 @@ class myTrackGymClient(MultirotorClient):
         duration = 0 
         
         collided = False
-
+        collided_with = ''
         if action == 0:
 
             start, duration = self.straight(1, 4, vehicle_name)
         
             while duration > time.time() - start:
                 if self.simGetCollisionInfo(vehicle_name).has_collided == True:
-                    return True    
+                    print('collision_info',self.simGetCollisionInfo(vehicle_name).object_name)
+                    collided_with = self.simGetCollisionInfo(vehicle_name).object_name 
+                    return True, collided_with 
+                    
                 
             self.moveByVelocityAsync(0, 0, 0, 1, vehicle_name)
             self.rotateByYawRateAsync(0, 1, vehicle_name)
@@ -87,7 +102,9 @@ class myTrackGymClient(MultirotorClient):
             
             while duration > time.time() - start:
                 if self.simGetCollisionInfo(vehicle_name).has_collided == True:
-                    return True
+                    print('collision_info',self.simGetCollisionInfo(vehicle_name).object_name)
+                    collided_with = self.simGetCollisionInfo(vehicle_name).object_name 
+                    return True, collided_with 
             
             self.moveByVelocityAsync(0, 0, 0, 1, vehicle_name)
             self.rotateByYawRateAsync(0, 1, vehicle_name)
@@ -98,12 +115,14 @@ class myTrackGymClient(MultirotorClient):
             
             while duration > time.time() - start:
                 if self.simGetCollisionInfo(vehicle_name).has_collided == True:
-                    return True
+                    print('collision_info',self.simGetCollisionInfo(vehicle_name).object_name)
+                    collided_with = self.simGetCollisionInfo(vehicle_name).object_name 
+                    return True, collided_with 
                 
             self.moveByVelocityAsync(0, 0, 0, 1, vehicle_name)
             self.rotateByYawRateAsync(0, 1, vehicle_name)
             
-        return collided
+        return collided, collided_with
     
     def goal_direction(self, goal, pos, vehicle_name=''):
         
@@ -165,9 +184,12 @@ class myTrackGymClient(MultirotorClient):
         self.reset()
         time.sleep(0.2)
         self.enableApiControl(True,vehicle_name )
+         
         self.armDisarm(True,vehicle_name)
-        time.sleep(0.5)
-        self.moveToZAsync(self.z, 3, vehicle_name) 
-        time.sleep(0.5)
+         
+        time.sleep(1)
+        self.moveToZAsync(self.z, 3,vehicle_name) 
+         
+        time.sleep(1)
         
      

@@ -1,6 +1,6 @@
 #env def as described by openAI
 #http://rllab.readthedocs.io/en/latest/user/implement_env.html
-
+import re
 import gym 
 from gym import spaces
 from gym.spaces import Tuple, Box, Discrete, MultiDiscrete, Dict
@@ -15,7 +15,8 @@ from gym_trackairsim.envs.myTrackGymClient import *
 logger = logging.getLogger(__name__)
 
 class TrackSimEnv(gym.Env):
-    trackgym = None
+
+    #trackgym = None
 
     def __init__(self):
         '''
@@ -23,40 +24,61 @@ class TrackSimEnv(gym.Env):
             Box(low=-1.0, high=1.0, shape=(3,4)) # low and high are scalars, and shape is provided
             Box(low=np.array([-1.0,-2.0]), high=np.array([2.0,4.0])) # low and high are arrays of the same shape
         '''
+        #global trackgym
+        #trackgym = myTrackGymClient()
+        self.client = myTrackGymClient()
         # left depth, center depth, right depth, yaw
+        self.drone1_vehicle_name = "Drone1"
+        self.target1_vehicle_name = "Target1"
+
         self.observation_space = spaces.Box(low=0, high=255, shape=(30, 100), dtype=np.float32)
         self.state = np.zeros((30, 100), dtype=np.uint8) 
         self.action_space = spaces.Discrete(3)
-        self.goal =[100, 2]# 	[221.0, -9.0] # global xy coordinates
+        self.goal1 =[12, -1.6, -2]# [x,y,z]  the first target drone obtained by flying the drone around , should be d = 12.106197 
+        self.goal2 = [10,2,-2]
+        self.goal3 = [6,1,-2]
+        self.goal4 = [5,-2,-2]
         self.episodeN = 0
         self.stepN = 0 
         self.allLogs = { 'reward':[0] }
-        self.allLogs['distance'] = [10]# [221]
-        self.allLogs['track'] = [-2]
+        self.initial_position = self.client.simGetGroundTruthKinematics(self.drone1_vehicle_name).position
+        self.allLogs['distance1'] = [np.sqrt(np.power((self.goal1[0]-self.initial_position.x_val),2) + np.power((self.goal1[1]-self.initial_position.y_val),2)+ np.power((self.goal1[2]-self.initial_position.z_val),2))] 
+        self.allLogs['distance2'] = [np.sqrt(np.power((self.goal2[0]-self.initial_position.x_val),2) + np.power((self.goal2[1]-self.initial_position.y_val),2)+ np.power((self.goal2[2]-self.initial_position.z_val),2))] 
+        self.allLogs['distance3'] = [np.sqrt(np.power((self.goal3[0]-self.initial_position.x_val),2) + np.power((self.goal3[1]-self.initial_position.y_val),2)+ np.power((self.goal3[2]-self.initial_position.z_val),2))] 
+        self.allLogs['distance4'] = [np.sqrt(np.power((self.goal4[0]-self.initial_position.x_val),2) + np.power((self.goal4[1]-self.initial_position.y_val),2)+ np.power((self.goal4[2]-self.initial_position.z_val),2))] 
+        self.allLogs['track1'] = [self.client.goal_direction(self.goal1, self.initial_position, self.drone1_vehicle_name)]
+        self.allLogs['track2'] = [self.client.goal_direction(self.goal2, self.initial_position, self.drone1_vehicle_name)]
+        self.allLogs['track3'] = [self.client.goal_direction(self.goal3, self.initial_position, self.drone1_vehicle_name)]
+        self.allLogs['track4'] = [self.client.goal_direction(self.goal4, self.initial_position, self.drone1_vehicle_name)]
         self.allLogs['action'] = [1] 
         self._seed()
-        global trackgym
-        trackgym = myTrackGymClient()
+
+        #################
+        
+
+
     def _seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
-    def computeReward(self, now, track_now):
-		
-		#get exact coordiantes of the tip
-        distance_now = np.sqrt(np.power((self.goal[0]-now.x_val),2) + np.power((self.goal[1]-now.y_val),2))
-        distance_before = self.allLogs['distance'][-1] 
+    def computeReward(self, current_position, heading_to_target,velocity):
+		#track_current_position has the heading to goal 
+		#compute the current distance to the target in 3d
+        distance1_current_position = np.sqrt(np.power((self.goal1[0]-current_position.x_val),2) + np.power((self.goal1[1]-current_position.y_val),2)+ np.power((self.goal1[2]-current_position.z_val),2))
+        #get the previous distance info
+        distance1_before = self.allLogs['distance1'][-1] 
+        reward_speed = (np.linalg.norm([velocity.x_val, velocity.y_val, velocity.z_val]) - 0.5)
         r = -1 
-        """
-        if abs(distance_now - distance_before) < 0.0001:
-            r = r - 2.0
-            #Check if last 4 positions are the same. Is the copter actually moving?
-            if self.stepN > 5 and len(set(self.allLogs['distance'][len(self.allLogs['distance']):len(self.allLogs['distance'])-5:-1])) == 1: 
-                r = r - 50
-        """  
-            
-        r = r + (distance_before - distance_now)
-            
-        return r, distance_now
+        r = r + (distance1_before - distance1_current_position) + reward_speed - abs(heading_to_target/10)
+
+
+        # make sure the drone is moving and isn't stuck in the env
+        # Check if the drone is stuck in the last 10 positions using the velocity
+        #if self.stepN > 11 and abs(sum(velocity.x_val, velocity.y_val)) < 1:
+            #r = r - 60
+        print('spying on rewards r', r)
+        print('spying on heading abs(heading_to_target/10)',abs(heading_to_target/10))
+        print('spying on reward_speed ',reward_speed)
+        return r, distance1_current_position
     '''
     def compute_reward(quad_state, quad_vel, collision_info):
         thresh_dist = 3.5#7
@@ -84,50 +106,58 @@ class TrackSimEnv(gym.Env):
 
         return reward
     '''
-    def _step(self, action, vehicle_name=''):
+    def _step(self, action):
         assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
         
         self.addToLog('action', action)
         
         self.stepN += 1
 
-        collided = trackgym.take_action(action, vehicle_name)
-        
-        now = trackgym.simGetGroundTruthKinematics(vehicle_name).position
-        track = trackgym.goal_direction(self.goal, now, vehicle_name) #self, goal, pos, vehicle_name=''
+        collided, collided_with = self.client.take_action(action, self.drone1_vehicle_name)
+        #print('#############################################')
+        #print('passed collided_with value', collided_with)
+        #print('passed collision value', collided)
+        #print('#############################################')
+        current_position = self.client.simGetGroundTruthKinematics(self.drone1_vehicle_name).position
+        velocity = self.client.simGetGroundTruthKinematics(self.drone1_vehicle_name).linear_velocity
+        print('current_position',current_position)
+        #traget1_current_position = self.client.simGetGroundTruthKinematics(self.target1_vehicle_name).position
+        #print('traget1_current_position',traget1_current_position)
+        track1 = self.client.goal_direction(self.goal1, current_position, self.drone1_vehicle_name) #self, goal1, pos, vehicle_name=''
 
         if collided == True:
             done = True
-            reward = -100.0
-            distance = np.sqrt(np.power((self.goal[0]-now.x_val),2) + np.power((self.goal[1]-now.y_val),2))
-        elif collided == 99:
-            done = True
-            reward = 0.0
-            distance = np.sqrt(np.power((self.goal[0]-now.x_val),2) + np.power((self.goal[1]-now.y_val),2))
+            if re.match(r'Quadrotor\d',collided_with):
+                reward = +100.0
+                distance1 = np.sqrt(np.power((self.goal1[0]-current_position.x_val),2) + np.power((self.goal1[1]-current_position.y_val),2))
+                print('got drone', collided_with)
+            else:
+                reward = -100.0
+                distance1 = np.sqrt(np.power((self.goal1[0]-current_position.x_val),2) + np.power((self.goal1[1]-current_position.y_val),2))
         else: 
             done = False
-            reward, distance = self.computeReward(now, track)
+            reward, distance1 = self.computeReward(current_position, track1, velocity)
         
-        # Youuuuu made it
-        if distance < 3:
+        # intercepted target
+        if distance1 < 2:
             done = True
             reward = 100.0
         
         self.addToLog('reward', reward)
         rewardSum = np.sum(self.allLogs['reward'])
-        self.addToLog('distance', distance)
-        self.addToLog('track', track)      
+        self.addToLog('distance1', distance1)
+        self.addToLog('track1', track1)      
             
         # Terminate the episode on large cumulative amount penalties, 
         # since drone probably got into an unexpected loop of some sort
         if rewardSum < -100:
             done = True
         
-        sys.stdout.write("\r\x1b[K{}/{}==>reward/depth: {:.1f}/{:.1f}   \t {:.0f}  {:.0f}".format(self.episodeN, self.stepN, reward, rewardSum, track, action))
+        sys.stdout.write("\r\x1b[K{}/{}==>reward/rsum: {:.1f}/{:.1f}   \t track1:{:.0f}  action:{:.0f} distance1:{:.0f}".format(self.episodeN, self.stepN, reward, rewardSum, track1, action, distance1))
         sys.stdout.flush()
         
-        info = {"x_pos" : now.x_val, "y_pos" : now.y_val}
-        self.state = trackgym.getScreenDepthVis(track, vehicle_name)
+        info = {"x_pos" : current_position.x_val, "y_pos" : current_position.y_val}
+        self.state =self.client.getScreenDepthVis(track1, self.drone1_vehicle_name)
 
         return self.state, reward, done, info
 
@@ -136,27 +166,44 @@ class TrackSimEnv(gym.Env):
             self.allLogs[key] = []
         self.allLogs[key].append(value)
         
-    def _reset(self,vehicle_name=''):
+    def _reset(self):
         """
         Resets the state of the environment and returns an initial observation.
         
         # Returns
             observation (object): The initial observation of the space. Initial reward is assumed to be 0.
         """
-        trackgym.AirSim_reset(vehicle_name)
-        
+        self.client.AirSim_reset(self.drone1_vehicle_name)
+        ####################################################
+
+        #self.client.confirmConnection()
+        #self.client.enableApiControl(True, self.target1_vehicle_name)
+        #self.client.armDisarm(True, self.target1_vehicle_name)
+        #f1 = self.client.takeoffAsync(vehicle_name=self.target1_vehicle_name)
+        #f1.join()
+        ###################################################
         self.stepN = 0
         self.episodeN += 1
         
         self.allLogs = { 'reward': [0] }
-        self.allLogs['distance'] = [10]# [221]
-        self.allLogs['track'] = [-2]
+        self.initial_position = self.client.simGetGroundTruthKinematics(self.drone1_vehicle_name).position
+        self.allLogs['distance1'] = [np.sqrt(np.power((self.goal1[0]-self.initial_position.x_val),2) + np.power((self.goal1[1]-self.initial_position.y_val),2)+ np.power((self.goal1[2]-self.initial_position.z_val),2))] 
+        self.allLogs['distance2'] = [np.sqrt(np.power((self.goal2[0]-self.initial_position.x_val),2) + np.power((self.goal2[1]-self.initial_position.y_val),2)+ np.power((self.goal2[2]-self.initial_position.z_val),2))] 
+        self.allLogs['distance3'] = [np.sqrt(np.power((self.goal3[0]-self.initial_position.x_val),2) + np.power((self.goal3[1]-self.initial_position.y_val),2)+ np.power((self.goal3[2]-self.initial_position.z_val),2))] 
+        self.allLogs['distance4'] = [np.sqrt(np.power((self.goal4[0]-self.initial_position.x_val),2) + np.power((self.goal4[1]-self.initial_position.y_val),2)+ np.power((self.goal4[2]-self.initial_position.z_val),2))] 
+        self.allLogs['track1'] = [self.client.goal_direction(self.goal1, self.initial_position, self.drone1_vehicle_name)]
+        self.allLogs['track2'] = [self.client.goal_direction(self.goal2, self.initial_position, self.drone1_vehicle_name)]
+        self.allLogs['track3'] = [self.client.goal_direction(self.goal3, self.initial_position, self.drone1_vehicle_name)]
+        self.allLogs['track4'] = [self.client.goal_direction(self.goal4, self.initial_position, self.drone1_vehicle_name)]
         self.allLogs['action'] = [1]
         
         print("")
         
-        now = trackgym.simGetGroundTruthKinematics(vehicle_name).position
-        track = trackgym.goal_direction(self.goal, now, vehicle_name)
-        self.state = trackgym.getScreenDepthVis(track,vehicle_name)
+        #current_position = self.initial_position
+        track1 = self.client.goal_direction(self.goal1, self.initial_position, self.drone1_vehicle_name)
+        self.state = self.client.getScreenDepthVis(track1,self.drone1_vehicle_name)
         
         return self.state
+
+    #def _render(self, mode='human', close=False):
+		#return

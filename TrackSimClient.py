@@ -369,13 +369,11 @@ class TrackSimClientBase:
         return 1 # sync with C++ client
     def getMinRequiredClientVersion(self):
         return self.client.call('getMinRequiredClientVersion')
-
-    def confirmConnection(self, vehicle_name=''):
+    def confirmConnection(self):
         if self.ping():
             print("Connected!")
         else:
              print("Ping returned false!")
-        '''
         server_ver = self.getServerVersion()
         client_ver = self.getClientVersion()
         server_min_ver = self.getMinRequiredServerVersion()
@@ -392,7 +390,15 @@ class TrackSimClientBase:
             print("AirSim client is of older version and not supported by this server. Please upgrade!")
         else:
             print(ver_info)
-        '''
+        print('')
+
+    '''
+    def confirmConnection(self, vehicle_name=''):
+        if self.ping():
+            print("Connected!")
+        else:
+             print("Ping returned false!")
+ 
         print('Waiting for connection: ', end='')
         
         home = self.getHomeGeoPoint(vehicle_name)
@@ -402,6 +408,7 @@ class TrackSimClientBase:
             home = self.getHomeGeoPoint(vehicle_name)
             print('X', end='')
         print('')
+        '''
 
     def getHomeGeoPoint(self, vehicle_name = ''):
         return GeoPoint.from_msgpack(self.client.call('getHomeGeoPoint', vehicle_name))
