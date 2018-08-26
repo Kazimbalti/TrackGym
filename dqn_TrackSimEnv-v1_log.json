@@ -1,1 +1,1 @@
-{"mean_eps": [NaN], "episode": [0], "nb_steps": [25], "mean_q": [NaN], "nb_episode_steps": [25], "loss": [NaN], "duration": [36.49546074322375], "mean_absolute_error": [NaN], "episode_reward": [-162.52455241794223]}
+{"mean_q": [NaN], "duration": [5.790571675715415], "loss": [NaN], "mean_absolute_error": [NaN], "mean_eps": [NaN], "episode_reward": [-100.0], "nb_steps": [1], "nb_episode_steps": [1], "episode": [0]}
