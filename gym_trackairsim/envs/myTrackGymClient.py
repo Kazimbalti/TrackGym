@@ -15,18 +15,18 @@ class myTrackGymClient(MultirotorClient):
 
     def __init__(self):        
         self.drone1_vehicle_name = "Drone1"
-        #self.target1_vehicle_name = "Target1"
-        self.z =-2
+        self.target1_vehicle_name = "Target1"
+        self.z =-4
         self.max_z= self.z - 1  #maximum allowable z value as the drone goofs up sometimes.
         self.img1 = None
         self.img2 = None
 
         MultirotorClient.__init__(self)
-        #MultirotorClient.confirmConnection(self)
-        #self.enableApiControl(True,vehicle_name='')
-        #self.enableApiControl(True,self.target1_vehicle_name)################
-        #self.armDisarm(True,vehicle_name='')
-        #self.armDisarm(True,self.target1_vehicle_name)################
+        MultirotorClient.confirmConnection(self)
+        self.enableApiControl(True,self.drone1_vehicle_name)
+        self.enableApiControl(True,self.target1_vehicle_name)################
+        self.armDisarm(True,self.drone1_vehicle_name)
+        self.armDisarm(True,self.target1_vehicle_name)################
         #f1 = MultirotorClient.takeoffAsync(drone1_vehicle_name)
         #f2 = self.takeoffAsync(self.target1_vehicle_name)
         #f1.join()
