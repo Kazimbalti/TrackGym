@@ -7,7 +7,8 @@ from PIL import Image
 import eventlet
 from eventlet import Timeout
 import multiprocessing as mp
-
+import pprint
+ 
 from TrackSimClient import *
 
 
@@ -16,7 +17,7 @@ class myTrackGymClient(MultirotorClient):
     def __init__(self):        
         self.drone1_vehicle_name = "Drone1"
         self.target1_vehicle_name = "Target1"
-        self.z =-4
+        self.z =-2
         self.max_z= self.z - 1  #maximum allowable z value as the drone goofs up sometimes.
         self.img1 = None
         self.img2 = None
@@ -27,10 +28,16 @@ class myTrackGymClient(MultirotorClient):
         self.enableApiControl(True,self.target1_vehicle_name)################
         self.armDisarm(True,self.drone1_vehicle_name)
         self.armDisarm(True,self.target1_vehicle_name)################
-        #f1 = MultirotorClient.takeoffAsync(drone1_vehicle_name)
+        #f1 = self.takeoffAsync(self.drone1_vehicle_name)
         #f2 = self.takeoffAsync(self.target1_vehicle_name)
         #f1.join()
         #f2.join()
+        state1 = self.getMultirotorState(self.drone1_vehicle_name)
+        s = pprint.pformat(state1)
+        print("state: %s" % s)
+        state2 = self.getMultirotorState(self.target1_vehicle_name)
+        s = pprint.pformat(state2)
+        print("state: %s" % s)
         self.home_pos = self.simGetGroundTruthKinematics(self.drone1_vehicle_name).position
         print('home_pos',self.home_pos)
         #self.target1_home_pos = self.simGetGroundTruthKinematics(self.target1_vehicle_name).position###########
@@ -39,7 +46,10 @@ class myTrackGymClient(MultirotorClient):
         print('home_ori',self.home_ori)
         #self.target1_home_ori = self.simGetGroundTruthKinematics(self.target1_vehicle_name).orientation################
         #print('target1_home_ori',self.target1_home_ori)
-
+        #f1 = self.moveToPositionAsync(-5, 5, -10, 5, self.drone1_vehicle_name)
+        #f2 = self.moveToPositionAsync(5, -5, -10, 5, self.target1_vehicle_name)
+        #f1.join()
+        #f2.join()
         
    
     def straight(self, duration,speed, vehicle_name=''):
@@ -63,9 +73,12 @@ class myTrackGymClient(MultirotorClient):
         return start, duration
     
     
-    def take_action(self, action, vehicle_name=''):
-		
+    def take_action(self, action, vehicle_name):
+        #f1 = self.takeoffAsync(vehicle_name)
+        #f1.join()
         #check if copter is on level cause sometimes it goes up without a reason
+        self.enableApiControl(True,vehicle_name)################
+        self.armDisarm(True,vehicle_name)
         x = 0
         while self.simGetGroundTruthKinematics(vehicle_name).position.z_val < self.max_z:
             self. moveToZAsync(self.max_z, 3, vehicle_name)
@@ -73,7 +86,7 @@ class myTrackGymClient(MultirotorClient):
             print(self.simGetGroundTruthKinematics(vehicle_name).position.z_val, "and", x)
             x = x + 1
             if x > 10:
-                return True        
+                return True , 'None'       
         
     
         start = time.time()
@@ -123,7 +136,13 @@ class myTrackGymClient(MultirotorClient):
             self.rotateByYawRateAsync(0, 1, vehicle_name)
             
         return collided, collided_with
-    
+
+    def take_initial_action(self, vehicle_name=''):
+        self.takeoffAsync(vehicle_name=vehicle_name).join()
+        self. moveToZAsync(self.max_z, 3, vehicle_name)
+        self.hoverAsync(vehicle_name).join()
+ 
+
     def goal_direction(self, goal, pos, vehicle_name=''):
         
         pitch, roll, yaw  = self.getPitchRollYaw(vehicle_name)
@@ -177,8 +196,18 @@ class myTrackGymClient(MultirotorClient):
         #cv2.waitKey(0)
         
         return total
-
-
+    
+    def AirSim_reset(self):
+        #self.armDisarm(False, vehicle_name)
+        
+        self.reset()
+        self.enableApiControl(True,self.drone1_vehicle_name)################
+        self.armDisarm(True,self.drone1_vehicle_name)
+        self.enableApiControl(True,self.target1_vehicle_name)################
+        self.armDisarm(True,self.target1_vehicle_name)
+        # that's enough fun for now. let's quit cleanly
+        #self.enableApiControl(False, vehicle_name)
+"""
     def AirSim_reset(self,vehicle_name=''):
         
         self.reset()
@@ -191,5 +220,5 @@ class myTrackGymClient(MultirotorClient):
         self.moveToZAsync(self.z, 3,vehicle_name) 
          
         time.sleep(3)
-        
-     
+"""     
+

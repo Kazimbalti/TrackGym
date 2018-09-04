@@ -53,10 +53,6 @@ class TrackSimEnv(gym.Env):
         self.allLogs['action'] = [1] 
         self._seed()
 
-        #################
-        
-
-
     def _seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
@@ -114,7 +110,7 @@ class TrackSimEnv(gym.Env):
         self.stepN += 1
 
         collided, collided_with = trackgym.take_action(action, self.drone1_vehicle_name)
-        collided_target1, collided_with_target1 = trackgym.take_action(action, self.target1_vehicle_name)
+        
         #print('#############################################')
         #print('passed collided_with value', collided_with)
         #print('passed collision value', collided)
@@ -151,7 +147,7 @@ class TrackSimEnv(gym.Env):
             
         # Terminate the episode on large cumulative amount penalties, 
         # since drone probably got into an unexpected loop of some sort
-        if rewardSum < -150:
+        if rewardSum < -50:
             done = True
         
         sys.stdout.write("\r\x1b[K{}/{}==>reward/rsum: {:.1f}/{:.1f}   \t track1:{:.0f}  action:{:.0f} distance1:{:.0f}".format(self.episodeN, self.stepN, reward, rewardSum, track1, action, distance1))
@@ -174,15 +170,9 @@ class TrackSimEnv(gym.Env):
         # Returns
             observation (object): The initial observation of the space. Initial reward is assumed to be 0.
         """
-        trackgym.AirSim_reset(self.drone1_vehicle_name)
-        ####################################################
-
-        #trackgym.confirmConnection()
-        #trackgym.enableApiControl(True, self.target1_vehicle_name)
-        #trackgym.armDisarm(True, self.target1_vehicle_name)
-        #f1 = trackgym.takeoffAsync(vehicle_name=self.target1_vehicle_name)
-        #f1.join()
-        ###################################################
+        trackgym.AirSim_reset()
+        trackgym.take_initial_action(self.target1_vehicle_name)
+        trackgym.take_initial_action(self.drone1_vehicle_name)
         self.stepN = 0
         self.episodeN += 1
         
