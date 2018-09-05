@@ -140,8 +140,11 @@ class myTrackGymClient(MultirotorClient):
 
  
     def take_initial_action(self, vehicle_name=''):
+ 
         self.takeoffAsync(vehicle_name=vehicle_name).join()
-        self. moveToZAsync(self.max_z, 3, vehicle_name)
+        time.sleep(1)
+        self.moveToZAsync(self.max_z, 3, vehicle_name)
+        time.sleep(1)
         self.hoverAsync(vehicle_name)#.join()
         time.sleep(1)
     def move_to_coordinates(self, coordinates,vehicle_name=''):

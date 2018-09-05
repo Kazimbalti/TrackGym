@@ -134,7 +134,7 @@ class TrackSimEnv(gym.Env):
             reward, distance1 = self.computeReward(current_position, track1, velocity)
         
         # intercepted target
-        if distance1 < 3:
+        if distance1 < 2:
             done = True
             reward = 100.0
         
@@ -173,7 +173,7 @@ class TrackSimEnv(gym.Env):
         trackgym.take_initial_action(self.drone1_vehicle_name)
         
          
-        if  2 < self.episodeN < 10:
+        if  1 < self.episodeN < 6:
             print('333333333333333333333 moving level 1 3333333333333333333333333')
             target1_new_position=[1,-3,self.z]
             trackgym.moveToPositionAsync(target1_new_position[0],target1_new_position[1],target1_new_position[2], 5, vehicle_name="Target1").join()
@@ -184,8 +184,27 @@ class TrackSimEnv(gym.Env):
             self.goal1 = [self.target1_init[0]+target1_position.x_val,self.target1_init[1]+target1_position.y_val,self.z ]
             print('new goal level 1', self.goal1)
             
-         
+        if  5 < self.episodeN < 10:
+            print('333333333333333333333 moving level 2 3333333333333333333333333')
+            target1_new_position=[-2,3,self.z]
+            trackgym.moveToPositionAsync(target1_new_position[0],target1_new_position[1],target1_new_position[2], 5, vehicle_name="Target1").join()
+            #trackgym.moveToPositionAsync(4,1,-2, 5, vehicle_name="Target1").join()
+            print('Done moving!!!!!!!!!')
+            target1_position = trackgym.simGetGroundTruthKinematics(self.target1_vehicle_name).position
+            #self.goal1 =np.add (self.target1_init,[target1_position.x_val,target1_position.y_val,target1_position.z_val])# [x,y,z]  the first target drone obtained by flying the drone around , should be d = 12.106197 
+            self.goal1 = [self.target1_init[0]+target1_position.x_val,self.target1_init[1]+target1_position.y_val,self.z ]
+            print('new goal level 2', self.goal1) 
  
+        if  9 < self.episodeN < 15:
+            print('333333333333333333333 moving level 3 3333333333333333333333333')
+            target1_new_position=[-4,1,self.z]
+            trackgym.moveToPositionAsync(target1_new_position[0],target1_new_position[1],target1_new_position[2], 5, vehicle_name="Target1").join()
+            #trackgym.moveToPositionAsync(4,1,-2, 5, vehicle_name="Target1").join()
+            print('Done moving!!!!!!!!!')
+            target1_position = trackgym.simGetGroundTruthKinematics(self.target1_vehicle_name).position
+            #self.goal1 =np.add (self.target1_init,[target1_position.x_val,target1_position.y_val,target1_position.z_val])# [x,y,z]  the first target drone obtained by flying the drone around , should be d = 12.106197 
+            self.goal1 = [self.target1_init[0]+target1_position.x_val,self.target1_init[1]+target1_position.y_val,self.z ]
+            print('new goal level 3', self.goal1)
         
         self.stepN = 0
         self.episodeN += 1
