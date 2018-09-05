@@ -134,7 +134,7 @@ class TrackSimEnv(gym.Env):
             reward, distance1 = self.computeReward(current_position, track1, velocity)
         
         # intercepted target
-        if distance1 < 3:
+        if distance1 < 4:
             done = True
             reward = 100.0
         
