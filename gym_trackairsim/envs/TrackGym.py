@@ -173,7 +173,7 @@ class TrackSimEnv(gym.Env):
         trackgym.take_initial_action(self.drone1_vehicle_name)
         
          
-        if  1 < self.episodeN < 6:
+        if  5000 < self.episodeN < 10000:
             print('333333333333333333333 moving level 1 3333333333333333333333333')
             target1_new_position=[1,-3,self.z]
             trackgym.moveToPositionAsync(target1_new_position[0],target1_new_position[1],target1_new_position[2], 5, vehicle_name="Target1").join()
@@ -184,7 +184,7 @@ class TrackSimEnv(gym.Env):
             self.goal1 = [self.target1_init[0]+target1_position.x_val,self.target1_init[1]+target1_position.y_val,self.z ]
             print('new goal level 1', self.goal1)
             
-        if  5 < self.episodeN < 10:
+        if  9999 < self.episodeN < 15000:
             print('333333333333333333333 moving level 2 3333333333333333333333333')
             target1_new_position=[-2,3,self.z]
             trackgym.moveToPositionAsync(target1_new_position[0],target1_new_position[1],target1_new_position[2], 5, vehicle_name="Target1").join()
@@ -195,9 +195,9 @@ class TrackSimEnv(gym.Env):
             self.goal1 = [self.target1_init[0]+target1_position.x_val,self.target1_init[1]+target1_position.y_val,self.z ]
             print('new goal level 2', self.goal1) 
  
-        if  9 < self.episodeN < 15:
+        if  14999 < self.episodeN < 20000:
             print('333333333333333333333 moving level 3 3333333333333333333333333')
-            target1_new_position=[-4,1,self.z]
+            target1_new_position=[-3,-2,self.z]
             trackgym.moveToPositionAsync(target1_new_position[0],target1_new_position[1],target1_new_position[2], 5, vehicle_name="Target1").join()
             #trackgym.moveToPositionAsync(4,1,-2, 5, vehicle_name="Target1").join()
             print('Done moving!!!!!!!!!')
@@ -205,7 +205,46 @@ class TrackSimEnv(gym.Env):
             #self.goal1 =np.add (self.target1_init,[target1_position.x_val,target1_position.y_val,target1_position.z_val])# [x,y,z]  the first target drone obtained by flying the drone around , should be d = 12.106197 
             self.goal1 = [self.target1_init[0]+target1_position.x_val,self.target1_init[1]+target1_position.y_val,self.z ]
             print('new goal level 3', self.goal1)
-        
+        if  19999 < self.episodeN < 25000:
+            print('333333333333333333333 moving level 4 3333333333333333333333333')
+            target1_new_position=[10,0,self.z]
+            trackgym.moveToPositionAsync(target1_new_position[0],target1_new_position[1],target1_new_position[2], 5, vehicle_name="Target1").join()
+            #trackgym.moveToPositionAsync(4,1,-2, 5, vehicle_name="Target1").join()
+            print('Done moving!!!!!!!!!')
+            target1_position = trackgym.simGetGroundTruthKinematics(self.target1_vehicle_name).position
+            #self.goal1 =np.add (self.target1_init,[target1_position.x_val,target1_position.y_val,target1_position.z_val])# [x,y,z]  the first target drone obtained by flying the drone around , should be d = 12.106197 
+            self.goal1 = [self.target1_init[0]+target1_position.x_val,self.target1_init[1]+target1_position.y_val,self.z ]
+            print('new goal level 4', self.goal1)
+        if  24999 < self.episodeN < 30000:
+            print('333333333333333333333 moving level 5 3333333333333333333333333')
+            target1_new_position=[10,5,self.z]
+            trackgym.moveToPositionAsync(target1_new_position[0],target1_new_position[1],target1_new_position[2], 5, vehicle_name="Target1").join()
+            #trackgym.moveToPositionAsync(4,1,-2, 5, vehicle_name="Target1").join()
+            print('Done moving!!!!!!!!!')
+            target1_position = trackgym.simGetGroundTruthKinematics(self.target1_vehicle_name).position
+            #self.goal1 =np.add (self.target1_init,[target1_position.x_val,target1_position.y_val,target1_position.z_val])# [x,y,z]  the first target drone obtained by flying the drone around , should be d = 12.106197 
+            self.goal1 = [self.target1_init[0]+target1_position.x_val,self.target1_init[1]+target1_position.y_val,self.z ]
+            print('new goal level 5', self.goal1)
+        if  29999 < self.episodeN < 40000:
+            print('333333333333333333333 moving level 6 3333333333333333333333333')
+            target1_new_position=[10,5,self.z]
+            trackgym.moveToPositionAsync(target1_new_position[0],target1_new_position[1],target1_new_position[2], 5, vehicle_name="Target1").join()
+            #trackgym.moveToPositionAsync(4,1,-2, 5, vehicle_name="Target1").join()
+            print('Done moving!!!!!!!!!')
+            target1_position = trackgym.simGetGroundTruthKinematics(self.target1_vehicle_name).position
+            #self.goal1 =np.add (self.target1_init,[target1_position.x_val,target1_position.y_val,target1_position.z_val])# [x,y,z]  the first target drone obtained by flying the drone around , should be d = 12.106197 
+            self.goal1 = [self.target1_init[0]+target1_position.x_val,self.target1_init[1]+target1_position.y_val,self.z ]
+            print('new goal level 6', self.goal1)
+        if  49999 < self.episodeN < 50000:
+            print('333333333333333333333 moving level 7 3333333333333333333333333')
+            target1_new_position=[10,-5,self.z]
+            trackgym.moveToPositionAsync(target1_new_position[0],target1_new_position[1],target1_new_position[2], 5, vehicle_name="Target1").join()
+            #trackgym.moveToPositionAsync(4,1,-2, 5, vehicle_name="Target1").join()
+            print('Done moving!!!!!!!!!')
+            target1_position = trackgym.simGetGroundTruthKinematics(self.target1_vehicle_name).position
+            #self.goal1 =np.add (self.target1_init,[target1_position.x_val,target1_position.y_val,target1_position.z_val])# [x,y,z]  the first target drone obtained by flying the drone around , should be d = 12.106197 
+            self.goal1 = [self.target1_init[0]+target1_position.x_val,self.target1_init[1]+target1_position.y_val,self.z ]
+            print('new goal level 7', self.goal1)
         self.stepN = 0
         self.episodeN += 1
         

@@ -130,7 +130,7 @@ except (FileNotFoundError, EOFError):
 # (low eps). We also set a dedicated eps value that is used during testing. Note that we set it to 0.05c
 # so that the agent still performs some random actions. This ensures that the agent cannot get stuck.
 policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.1, value_test=0.0,
-                              nb_steps=100000)
+                              nb_steps=50002)
 # The trade-off between exploration and exploitation is difficult and an on-going research topic.
 # If you want, you can experiment with the parameters or use a different policy. Another popular one
 # is Boltzmann-style exploration:
@@ -159,10 +159,10 @@ if train:
     checkpoint_weights_filename = 'dqn_' + args.env_name + '_weights_{step}.h5f'
     log_filename = 'dqn_{}_log.json'.format(args.env_name)
      
-    callbacks = [ModelIntervalCheckpoint(checkpoint_weights_filename, interval=25000)]
-    callbacks += [FileLogger(log_filename, interval=25000)]
+    callbacks = [ModelIntervalCheckpoint(checkpoint_weights_filename, interval=10000)]
+    callbacks += [FileLogger(log_filename, interval=10000)]
     callbacks += [tb]
-    dqn.fit(env, callbacks=callbacks, nb_steps=100002, visualize=False, verbose=2, log_interval=25000) 
+    dqn.fit(env, callbacks=callbacks, nb_steps=50002, visualize=False, verbose=2, log_interval=10000) 
     
     
     # After training is done, we save the final weights.
