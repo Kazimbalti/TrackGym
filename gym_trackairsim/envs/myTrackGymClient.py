@@ -33,11 +33,11 @@ class myTrackGymClient(MultirotorClient):
         #f1.join()
         #f2.join()
         state1 = self.getMultirotorState(self.drone1_vehicle_name)
-        s = pprint.pformat(state1)
-        print("state: %s" % s)
+        #s = pprint.pformat(state1)
+        #print("state_drone1: %s" % s)
         state2 = self.getMultirotorState(self.target1_vehicle_name)
-        s = pprint.pformat(state2)
-        print("state: %s" % s)
+        #s = pprint.pformat(state2)
+        #print("state_target1: %s" % s)
         self.home_pos = self.simGetGroundTruthKinematics(self.drone1_vehicle_name).position
         print('home_pos',self.home_pos)
         #self.target1_home_pos = self.simGetGroundTruthKinematics(self.target1_vehicle_name).position###########
@@ -137,12 +137,17 @@ class myTrackGymClient(MultirotorClient):
             
         return collided, collided_with
 
+
+ 
     def take_initial_action(self, vehicle_name=''):
         self.takeoffAsync(vehicle_name=vehicle_name).join()
         self. moveToZAsync(self.max_z, 3, vehicle_name)
-        self.hoverAsync(vehicle_name).join()
- 
-
+        self.hoverAsync(vehicle_name)#.join()
+        time.sleep(1)
+    def move_to_coordinates(self, coordinates,vehicle_name=''):
+        print('coordinates',coordinates)
+        self.moveByVelocityAsync(coordinates[0], coordinates[1],self.z, 1, vehicle_name)
+        
     def goal_direction(self, goal, pos, vehicle_name=''):
         
         pitch, roll, yaw  = self.getPitchRollYaw(vehicle_name)
@@ -207,18 +212,5 @@ class myTrackGymClient(MultirotorClient):
         self.armDisarm(True,self.target1_vehicle_name)
         # that's enough fun for now. let's quit cleanly
         #self.enableApiControl(False, vehicle_name)
-"""
-    def AirSim_reset(self,vehicle_name=''):
-        
-        self.reset()
-        time.sleep(0.2)
-        self.enableApiControl(True,vehicle_name )
-         
-        self.armDisarm(True,vehicle_name)
-         
-        time.sleep(1)
-        self.moveToZAsync(self.z, 3,vehicle_name) 
-         
-        time.sleep(3)
-"""     
+ 
 

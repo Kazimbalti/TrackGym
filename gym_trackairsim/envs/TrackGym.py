@@ -24,32 +24,30 @@ class TrackSimEnv(gym.Env):
             Box(low=-1.0, high=1.0, shape=(3,4)) # low and high are scalars, and shape is provided
             Box(low=np.array([-1.0,-2.0]), high=np.array([2.0,4.0])) # low and high are arrays of the same shape
         '''
+
         global trackgym
         trackgym = myTrackGymClient()
         #self.client = myTrackGymClient()
         # left depth, center depth, right depth, yaw
         self.drone1_vehicle_name = "Drone1"
         self.target1_vehicle_name = "Target1"
-
+        self.z =-2
         self.observation_space = spaces.Box(low=0, high=255, shape=(30, 100), dtype=np.float32)
         self.state = np.zeros((30, 100), dtype=np.uint8) 
         self.action_space = spaces.Discrete(3)
-        self.goal1 =[31, -2, -2]# [x,y,z]  the first target drone obtained by flying the drone around , should be d = 12.106197 
-        self.goal2 = [10,2,-2]
-        self.goal3 = [6,1,-2]
-        self.goal4 = [5,-2,-2]
+        self.drone1_init=[0,0,-2]
+        self.target1_init=[6,-2,-2]
+        self.goal1 =np.subtract (self.target1_init,self.drone1_init)# [x,y,z]  the first target drone obtained by flying the drone around , should be d = 12.106197 
+        print('initial goal', self.goal1)
         self.episodeN = 0
         self.stepN = 0 
         self.allLogs = { 'reward':[0] }
-        self.initial_position = trackgym.simGetGroundTruthKinematics(self.drone1_vehicle_name).position
-        self.allLogs['distance1'] = [np.sqrt(np.power((self.goal1[0]-self.initial_position.x_val),2) + np.power((self.goal1[1]-self.initial_position.y_val),2)+ np.power((self.goal1[2]-self.initial_position.z_val),2))] 
-        self.allLogs['distance2'] = [np.sqrt(np.power((self.goal2[0]-self.initial_position.x_val),2) + np.power((self.goal2[1]-self.initial_position.y_val),2)+ np.power((self.goal2[2]-self.initial_position.z_val),2))] 
-        self.allLogs['distance3'] = [np.sqrt(np.power((self.goal3[0]-self.initial_position.x_val),2) + np.power((self.goal3[1]-self.initial_position.y_val),2)+ np.power((self.goal3[2]-self.initial_position.z_val),2))] 
-        self.allLogs['distance4'] = [np.sqrt(np.power((self.goal4[0]-self.initial_position.x_val),2) + np.power((self.goal4[1]-self.initial_position.y_val),2)+ np.power((self.goal4[2]-self.initial_position.z_val),2))] 
-        self.allLogs['track1'] = [trackgym.goal_direction(self.goal1, self.initial_position, self.drone1_vehicle_name)]
-        self.allLogs['track2'] = [trackgym.goal_direction(self.goal2, self.initial_position, self.drone1_vehicle_name)]
-        self.allLogs['track3'] = [trackgym.goal_direction(self.goal3, self.initial_position, self.drone1_vehicle_name)]
-        self.allLogs['track4'] = [trackgym.goal_direction(self.goal4, self.initial_position, self.drone1_vehicle_name)]
+        self.drone1_position = trackgym.simGetGroundTruthKinematics(self.drone1_vehicle_name).position
+        self.target1_position = trackgym.simGetGroundTruthKinematics(self.target1_vehicle_name).position
+        self.allLogs['distance1'] = [np.sqrt(np.power((self.goal1[0]-self.drone1_position.x_val),2) + np.power((self.goal1[1]-self.drone1_position.y_val),2)+ np.power((self.goal1[2]-self.drone1_position.z_val),2))] 
+
+        self.allLogs['track1'] = [trackgym.goal_direction(self.goal1, self.drone1_position, self.drone1_vehicle_name)]
+
         self.allLogs['action'] = [1] 
         self._seed()
 
@@ -112,7 +110,7 @@ class TrackSimEnv(gym.Env):
         collided, collided_with = trackgym.take_action(action, self.drone1_vehicle_name)
         
         #print('#############################################')
-        #print('passed collided_with value', collided_with)
+        print('passed collided_with value', collided_with)
         #print('passed collision value', collided)
         #print('#############################################')
         current_position = trackgym.simGetGroundTruthKinematics(self.drone1_vehicle_name).position
@@ -124,7 +122,7 @@ class TrackSimEnv(gym.Env):
 
         if collided == True:
             done = True
-            if re.match(r'Quadrotor\d',collided_with):
+            if re.match(r'Target\d',collided_with):
                 reward = +100.0
                 distance1 = np.sqrt(np.power((self.goal1[0]-current_position.x_val),2) + np.power((self.goal1[1]-current_position.y_val),2))
                 print('got drone', collided_with)
@@ -173,26 +171,40 @@ class TrackSimEnv(gym.Env):
         trackgym.AirSim_reset()
         trackgym.take_initial_action(self.target1_vehicle_name)
         trackgym.take_initial_action(self.drone1_vehicle_name)
+        
+         
+        if  2 < self.episodeN < 10:
+            print('333333333333333333333 moving level 1 3333333333333333333333333')
+            target1_new_position=[1,-3,self.z]
+            trackgym.moveToPositionAsync(target1_new_position[0],target1_new_position[1],target1_new_position[2], 5, vehicle_name="Target1").join()
+            #trackgym.moveToPositionAsync(4,1,-2, 5, vehicle_name="Target1").join()
+            print('Done moving!!!!!!!!!')
+            target1_position = trackgym.simGetGroundTruthKinematics(self.target1_vehicle_name).position
+            #self.goal1 =np.add (self.target1_init,[target1_position.x_val,target1_position.y_val,target1_position.z_val])# [x,y,z]  the first target drone obtained by flying the drone around , should be d = 12.106197 
+            self.goal1 = [self.target1_init[0]+target1_position.x_val,self.target1_init[1]+target1_position.y_val,self.z ]
+            print('new goal level 1', self.goal1)
+            
+         
+ 
+        
         self.stepN = 0
         self.episodeN += 1
         
         self.allLogs = { 'reward': [0] }
-        self.initial_position = trackgym.simGetGroundTruthKinematics(self.drone1_vehicle_name).position
-        self.allLogs['distance1'] = [np.sqrt(np.power((self.goal1[0]-self.initial_position.x_val),2) + np.power((self.goal1[1]-self.initial_position.y_val),2)+ np.power((self.goal1[2]-self.initial_position.z_val),2))] 
-        self.allLogs['distance2'] = [np.sqrt(np.power((self.goal2[0]-self.initial_position.x_val),2) + np.power((self.goal2[1]-self.initial_position.y_val),2)+ np.power((self.goal2[2]-self.initial_position.z_val),2))] 
-        self.allLogs['distance3'] = [np.sqrt(np.power((self.goal3[0]-self.initial_position.x_val),2) + np.power((self.goal3[1]-self.initial_position.y_val),2)+ np.power((self.goal3[2]-self.initial_position.z_val),2))] 
-        self.allLogs['distance4'] = [np.sqrt(np.power((self.goal4[0]-self.initial_position.x_val),2) + np.power((self.goal4[1]-self.initial_position.y_val),2)+ np.power((self.goal4[2]-self.initial_position.z_val),2))] 
-        self.allLogs['track1'] = [trackgym.goal_direction(self.goal1, self.initial_position, self.drone1_vehicle_name)]
-        self.allLogs['track2'] = [trackgym.goal_direction(self.goal2, self.initial_position, self.drone1_vehicle_name)]
-        self.allLogs['track3'] = [trackgym.goal_direction(self.goal3, self.initial_position, self.drone1_vehicle_name)]
-        self.allLogs['track4'] = [trackgym.goal_direction(self.goal4, self.initial_position, self.drone1_vehicle_name)]
+        self.drone1_position = trackgym.simGetGroundTruthKinematics(self.drone1_vehicle_name).position
+        self.allLogs['distance1'] = [np.sqrt(np.power((self.goal1[0]-self.drone1_position.x_val),2) + np.power((self.goal1[1]-self.drone1_position.y_val),2)+ np.power((self.goal1[2]-self.drone1_position.z_val),2))] 
+        self.allLogs['track1'] = [trackgym.goal_direction(self.goal1, self.drone1_position, self.drone1_vehicle_name)]
+
         self.allLogs['action'] = [1]
         
         print("")
         
         #current_position = self.initial_position
-        track1 = trackgym.goal_direction(self.goal1, self.initial_position, self.drone1_vehicle_name)
+        track1 = trackgym.goal_direction(self.goal1, self.drone1_position, self.drone1_vehicle_name)
         self.state = trackgym.getScreenDepthVis(track1,self.drone1_vehicle_name)
+        
+
+
         
         return self.state
 
