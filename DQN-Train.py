@@ -143,7 +143,7 @@ dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmu
 
 dqn.compile(Adam(lr=0.00025), metrics=['mae'])
 
-load_pre_trained = True
+load_pre_trained = False
 if train:
     # Okay, now it's time to learn something! We visualize the training here for show, but this
     # slows down training quite a lot. You can always safely abort the training prematurely using

@@ -34,9 +34,9 @@ class TrackSimEnv(gym.Env):
         self.z =-2
         self.observation_space = spaces.Box(low=0, high=255, shape=(30, 100), dtype=np.float32)
         self.state = np.zeros((30, 100), dtype=np.uint8) 
-        self.action_space = spaces.Discrete(3)
+        self.action_space = spaces.Discrete(8)
         self.drone1_init=[0,0,-2]
-        self.target1_init=[6,-2,-2]
+        self.target1_init=[5,-2,-2]
         self.goal1 =np.subtract (self.target1_init,self.drone1_init)# [x,y,z]  the first target drone obtained by flying the drone around , should be d = 12.106197 
         print('initial goal', self.goal1)
         self.episodeN = 0
@@ -134,7 +134,7 @@ class TrackSimEnv(gym.Env):
             reward, distance1 = self.computeReward(current_position, track1, velocity)
         
         # intercepted target
-        if distance1 < 2:
+        if distance1 < 3:
             done = True
             reward = 100.0
         
@@ -145,7 +145,7 @@ class TrackSimEnv(gym.Env):
             
         # Terminate the episode on large cumulative amount penalties, 
         # since drone probably got into an unexpected loop of some sort
-        if rewardSum < -50:
+        if rewardSum < -30:
             done = True
         
         sys.stdout.write("\r\x1b[K{}/{}==>reward/rsum: {:.1f}/{:.1f}   \t track1:{:.0f}  action:{:.0f} distance1:{:.0f}".format(self.episodeN, self.stepN, reward, rewardSum, track1, action, distance1))

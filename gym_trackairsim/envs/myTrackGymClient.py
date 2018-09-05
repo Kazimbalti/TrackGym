@@ -63,12 +63,12 @@ class myTrackGymClient(MultirotorClient):
         start = time.time()
         return start, duration
     def yaw_right(self, duration,vehicle_name=''):
-        self.rotateByYawRateAsync(15, duration,vehicle_name)
+        self.rotateByYawRateAsync(30, duration,vehicle_name)
         start = time.time()
         return start, duration
     
     def yaw_left(self, duration, vehicle_name=''):
-        self.rotateByYawRateAsync(-15, duration,vehicle_name)
+        self.rotateByYawRateAsync(-30, duration,vehicle_name)
         start = time.time()
         return start, duration
     
@@ -111,7 +111,7 @@ class myTrackGymClient(MultirotorClient):
             
         if action == 1:
          
-            start, duration = self.yaw_right(0.8,vehicle_name)
+            start, duration = self.yaw_right(1,vehicle_name)
             
             while duration > time.time() - start:
                 if self.simGetCollisionInfo(vehicle_name).has_collided == True:
@@ -134,7 +134,68 @@ class myTrackGymClient(MultirotorClient):
                 
             self.moveByVelocityAsync(0, 0, 0, 1, vehicle_name)
             self.rotateByYawRateAsync(0, 1, vehicle_name)
+        if action == 3:
             
+            start, duration = self.yaw_left(2,vehicle_name)
+            
+            while duration > time.time() - start:
+                if self.simGetCollisionInfo(vehicle_name).has_collided == True:
+                    print('collision_info',self.simGetCollisionInfo(vehicle_name).object_name)
+                    collided_with = self.simGetCollisionInfo(vehicle_name).object_name 
+                    return True, collided_with 
+                
+            self.moveByVelocityAsync(0, 0, 0, 1, vehicle_name)
+            self.rotateByYawRateAsync(0, 1, vehicle_name)  
+        if action == 4:
+            
+            start, duration = self.yaw_left(0.5,vehicle_name)
+            
+            while duration > time.time() - start:
+                if self.simGetCollisionInfo(vehicle_name).has_collided == True:
+                    print('collision_info',self.simGetCollisionInfo(vehicle_name).object_name)
+                    collided_with = self.simGetCollisionInfo(vehicle_name).object_name 
+                    return True, collided_with 
+                
+            self.moveByVelocityAsync(0, 0, 0, 1, vehicle_name)
+            self.rotateByYawRateAsync(0, 1, vehicle_name)
+        if action == 5:
+            
+            start, duration = self.yaw_left(0.5,vehicle_name)
+            
+            while duration > time.time() - start:
+                if self.simGetCollisionInfo(vehicle_name).has_collided == True:
+                    print('collision_info',self.simGetCollisionInfo(vehicle_name).object_name)
+                    collided_with = self.simGetCollisionInfo(vehicle_name).object_name 
+                    return True, collided_with 
+                
+            self.moveByVelocityAsync(0, 0, 0, 1, vehicle_name)
+            self.rotateByYawRateAsync(0, 1, vehicle_name)
+        if action == 6:
+
+            start, duration = self.straight(0.5, 8, vehicle_name)
+        
+            while duration > time.time() - start:
+                if self.simGetCollisionInfo(vehicle_name).has_collided == True:
+                    print('collision_info',self.simGetCollisionInfo(vehicle_name).object_name)
+                    collided_with = self.simGetCollisionInfo(vehicle_name).object_name 
+                    return True, collided_with 
+                    
+                
+            self.moveByVelocityAsync(0, 0, 0, 1, vehicle_name)
+            self.rotateByYawRateAsync(0, 1, vehicle_name)
+        if action == 7:
+
+            start, duration = self.straight(2, 5, vehicle_name)
+        
+            while duration > time.time() - start:
+                if self.simGetCollisionInfo(vehicle_name).has_collided == True:
+                    print('collision_info',self.simGetCollisionInfo(vehicle_name).object_name)
+                    collided_with = self.simGetCollisionInfo(vehicle_name).object_name 
+                    return True, collided_with 
+                    
+                
+            self.moveByVelocityAsync(0, 0, 0, 1, vehicle_name)
+            self.rotateByYawRateAsync(0, 1, vehicle_name)
         return collided, collided_with
 
 
@@ -143,7 +204,7 @@ class myTrackGymClient(MultirotorClient):
  
         self.takeoffAsync(vehicle_name=vehicle_name).join()
         time.sleep(1)
-        self.moveToZAsync(self.max_z, 3, vehicle_name)
+        self.moveToZAsync(self.z, 3, vehicle_name)
         time.sleep(1)
         self.hoverAsync(vehicle_name)#.join()
         time.sleep(1)
