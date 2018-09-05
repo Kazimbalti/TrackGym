@@ -34,7 +34,7 @@ class TrackSimEnv(gym.Env):
         self.z =-2
         self.observation_space = spaces.Box(low=0, high=255, shape=(30, 100), dtype=np.float32)
         self.state = np.zeros((30, 100), dtype=np.uint8) 
-        self.action_space = spaces.Discrete(8)
+        self.action_space = spaces.Discrete(5)
         self.drone1_init=[0,0,-2]
         self.target1_init=[5,-2,-2]
         self.goal1 =np.subtract (self.target1_init,self.drone1_init)# [x,y,z]  the first target drone obtained by flying the drone around , should be d = 12.106197 
